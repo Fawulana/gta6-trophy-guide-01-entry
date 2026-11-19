@@ -1,8 +1,9 @@
 // Leonida Platinum — boot, routing, controls and the progress header.
 import { DEMO_COUNTS, DEMO_EARNED, GRADE_ORDER } from './config.js';
 import { trophyMatches } from './filters.js';
-import { renderAbout, renderMissables, renderRoadmap } from './roadmap.js';
-import { exportProgress, loadProgress, parseImported, saveProgress } from './store.js';
+import { nextUpTrophy } from './planner.js';
+import { renderAbout, renderMissables, renderPreFinale, renderRoadmap } from './roadmap.js';
+import { exportProgress, loadProgress, parseImported, progressSummary, saveProgress } from './store.js';
 import { renderChecklist, renderDetail } from './views.js';
 
 const viewEl = document.getElementById('view');
@@ -12,6 +13,7 @@ const searchEl = document.getElementById('search');
 const kindEl = document.getElementById('kindFilter');
 const gradeEl = document.getElementById('gradeFilter');
 const earnedEl = document.getElementById('earnedFilter');
+const orderEl = document.getElementById('orderFilter');
 const missableEl = document.getElementById('missableOnly');
 const spoilerEl = document.getElementById('spoilerToggle');
 const spoilerNote = document.getElementById('spoilerNote');
@@ -29,7 +31,7 @@ if (params.has('demo') && progress.earned.length === 0) {
 }
 
 const state = {
-  filters: { search: '', kind: 'all', grade: 'all', earned: 'all', missableOnly: false, spoilersOn: false },
+  filters: { search: '', kind: 'all', grade: 'all', earned: 'all', order: 'official', missableOnly: false, spoilersOn: false },
   progress,
   selectedId: null,
   matches(t) {
@@ -46,24 +48,39 @@ function currentView() {
   if (trophy) return { name: 'checklist', selectedId: Number(trophy[1]) };
   if (hash === '#/roadmap') return { name: 'roadmap', selectedId: null };
   if (hash === '#/missables') return { name: 'missables', selectedId: null };
+  if (hash === '#/prefinale') return { name: 'prefinale', selectedId: null };
   if (hash === '#/about') return { name: 'about', selectedId: null };
   return { name: 'checklist', selectedId: null };
 }
 
 function renderHeader() {
-  const earned = new Set(progress.earned);
-  document.getElementById('earnedCount').textContent = String(earned.size);
-  document.getElementById('barFill').style.width = `${(earned.size / trophies.length) * 100}%`;
+  const summary = progressSummary(progress, trophies);
+  document.getElementById('earnedCount').textContent = String(summary.earned);
+  document.getElementById('barFill').style.width = `${summary.percent}%`;
   const counts = GRADE_ORDER.map((g) => {
-    const total = trophies.filter((t) => t.grade === g).length;
-    const got = trophies.filter((t) => t.grade === g && earned.has(t.name)).length;
-    return `${g} ${got}/${total}`;
+    const s = summary.byGrade[g] || { got: 0, total: 0 };
+    return `${g} ${s.got}/${s.total}`;
   }).join(' · ');
   document.getElementById('gradeCounts').textContent = counts;
-  const left = trophies.length - earned.size;
-  document.getElementById('platinumNote').textContent = earned.size === trophies.length
+  const left = summary.total - summary.earned;
+  document.getElementById('platinumNote').textContent = summary.earned === summary.total
     ? 'Platinum earned — Leonida Legend.'
-    : `${left} to go — next up: the roadmap.`;
+    : `${left} to go — ${summary.percent}% complete.`;
+  const next = nextUpTrophy(trophies, progress);
+  const nextEl = document.getElementById('nextUp');
+  if (next) {
+    nextEl.innerHTML = '';
+    const label = document.createElement('strong');
+    label.textContent = 'Next up: ';
+    const link = document.createElement('a');
+    link.href = `#/trophy/${next.trophy.id}`;
+    link.textContent = next.trophy.name;
+    const why = document.createElement('span');
+    why.textContent = ` — ${next.reason}`;
+    nextEl.append(label, link, why);
+  } else {
+    nextEl.textContent = 'Every trophy earned — Leonida Legend.';
+  }
   spoilerNote.hidden = !state.filters.spoilersOn;
 }
 
@@ -81,12 +98,15 @@ function renderAll(keepDetail) {
   } else if (route.name === 'missables') {
     resultEl.textContent = '';
     renderMissables(viewEl, trophies, progress);
+  } else if (route.name === 'prefinale') {
+    resultEl.textContent = '';
+    renderPreFinale(viewEl, trophies, progress);
   } else if (route.name === 'about') {
     resultEl.textContent = '';
     renderAbout(viewEl, doc);
   } else {
     const shown = renderChecklist(viewEl, trophies, state);
-    resultEl.textContent = `Showing ${shown} of ${trophies.length} trophies · ${progress.earned.length} earned`;
+    resultEl.textContent = `Showing ${shown} of ${trophies.length} trophies · ${progress.earned.length} earned · order: ${state.filters.order}`;
   }
   renderDetail(detailEl, trophies, state);
 }
@@ -96,11 +116,12 @@ function readControls() {
   state.filters.kind = kindEl.value;
   state.filters.grade = gradeEl.value;
   state.filters.earned = earnedEl.value;
+  state.filters.order = orderEl.value;
   state.filters.missableOnly = missableEl.checked;
   state.filters.spoilersOn = spoilerEl.checked;
 }
 
-for (const [el, event] of [[searchEl, 'input'], [kindEl, 'change'], [gradeEl, 'change'], [earnedEl, 'change'], [missableEl, 'change'], [spoilerEl, 'change']]) {
+for (const [el, event] of [[searchEl, 'input'], [kindEl, 'change'], [gradeEl, 'change'], [earnedEl, 'change'], [orderEl, 'change'], [missableEl, 'change'], [spoilerEl, 'change']]) {
   el.addEventListener(event, () => { readControls(); renderAll(); });
 }
 

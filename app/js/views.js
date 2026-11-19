@@ -1,6 +1,6 @@
 // Leonida Platinum — checklist rows and the per-trophy guide pane.
-import { KIND_LABELS } from './config.js';
-import { formatTarget, isSpoilerHidden } from './filters.js';
+import { DIFFICULTY_LABELS, KIND_LABELS } from './config.js';
+import { formatDifficulty, formatTarget, isSpoilerHidden, sortTrophies } from './filters.js';
 import { setCount, setEarned, setNote } from './store.js';
 
 function pill(text, cls) {
@@ -14,13 +14,23 @@ function gradePill(grade) {
   return pill(grade, grade);
 }
 
+// One line under a row's description: the guide's time estimate, difficulty
+// and, for a PSN-counted trophy, how far the counter has come.
+function estimateLine(t, progress) {
+  const bits = [];
+  if (t.time) bits.push(`Est. ${t.time}`);
+  if (t.difficulty != null) bits.push(`Difficulty ${t.difficulty}/5 (${DIFFICULTY_LABELS[t.difficulty] || ''})`);
+  if (t.target != null) bits.push(`PSN progress: ${formatTarget(t, progress.counts[String(t.id)] || 0)}`);
+  return bits.join(' · ');
+}
+
 export function renderChecklist(view, trophies, state) {
   const { filters, progress, selectedId } = state;
   const earned = new Set(progress.earned);
   view.replaceChildren();
+  const ordered = sortTrophies(trophies.filter((t) => state.matches(t)), filters.order, progress);
   let shown = 0;
-  for (const t of trophies) {
-    if (!state.matches(t)) continue;
+  for (const t of ordered) {
     shown += 1;
     const hidden = isSpoilerHidden(t, filters.spoilersOn, earned);
     const row = document.createElement('article');
@@ -56,12 +66,11 @@ export function renderChecklist(view, trophies, state) {
     if (t.missable) meta.append(pill('Missable', 'missable'));
     if (t.storyLocked) meta.append(pill('Story-locked', 'story-locked'));
     body.append(name, desc, meta);
-    if (t.target != null && !hidden) {
-      const count = progress.counts[String(t.id)] || 0;
-      const line = document.createElement('div');
-      line.className = 'counter-line';
-      line.textContent = `PSN progress: ${formatTarget(t, count)}`;
-      body.append(line);
+    if (!hidden) {
+      const est = document.createElement('div');
+      est.className = 'counter-line est-line';
+      est.textContent = estimateLine(t, progress);
+      body.append(est);
     }
     const open = document.createElement('button');
     open.type = 'button';
@@ -96,7 +105,7 @@ export function renderDetail(pane, trophies, state) {
     const p = document.createElement('p');
     p.textContent = 'Select any trophy in the checklist to read its guide, its sources, and when it can be missed. The guide pane stays beside the list while you work through the roadmap.';
     const p2 = document.createElement('p');
-    p2.textContent = 'Every guide cites its sources. A specific place or step with no source behind it is flagged as not yet checked in the game — the guide never invents one.';
+    p2.textContent = 'Every guide cites its sources and carries concrete steps, a difficulty rating, a time estimate and when to do it. A specific place or step with no source behind it is flagged as not yet checked in the game — the guide never invents one.';
     empty.append(h, p, p2);
     card.append(empty);
     pane.append(card);
@@ -116,6 +125,23 @@ export function renderDetail(pane, trophies, state) {
   official.className = 'official';
   official.textContent = hidden ? 'Spoilers hidden — earn it in the story to reveal its name and description.' : `“${t.description}” — official description, PlayStation.`;
   card.append(meta, title, official);
+  if (!hidden) {
+    const facts = document.createElement('div');
+    facts.className = 'fact-row';
+    const diff = document.createElement('span');
+    diff.className = 'difficulty';
+    diff.textContent = `Difficulty ${formatDifficulty(t.difficulty)} ${t.difficulty}/5 (${DIFFICULTY_LABELS[t.difficulty] || ''}) — estimate`;
+    const time = document.createElement('span');
+    time.textContent = `Est. time: ${t.time || '—'}`;
+    facts.append(diff, time);
+    card.append(facts);
+    if (t.when) {
+      const when = document.createElement('p');
+      when.className = 'when-line';
+      when.textContent = `${t.when}.`;
+      card.append(when);
+    }
+  }
   if (t.missable && t.missableNote) {
     const warn = document.createElement('div');
     warn.className = 'missable-warning';
@@ -129,6 +155,18 @@ export function renderDetail(pane, trophies, state) {
     guide.className = 'guide';
     guide.textContent = t.guide;
     card.append(guideH, guide);
+    if (t.steps && t.steps.length) {
+      const stepsH = document.createElement('h3');
+      stepsH.textContent = 'Steps';
+      const steps = document.createElement('ol');
+      steps.className = 'steps';
+      for (const s of t.steps) {
+        const li = document.createElement('li');
+        li.textContent = s;
+        steps.append(li);
+      }
+      card.append(stepsH, steps);
+    }
     const srcH = document.createElement('h3');
     srcH.textContent = 'Sources';
     const list = document.createElement('ul');
@@ -156,7 +194,9 @@ export function renderDetail(pane, trophies, state) {
       state.onChange(true);
     });
     const label = document.createElement('span');
-    label.textContent = `of ${t.target >= 1000 ? '$' + t.target.toLocaleString('en-US') : t.target} (PSN progress target)`;
+    const done = progress.counts[String(t.id)] || 0;
+    const left = Math.max(0, t.target - done);
+    label.textContent = `of ${t.target >= 1000 ? '$' + t.target.toLocaleString('en-US') : t.target} (PSN progress target) — ${left} to go`;
     row.append(input, label);
     card.append(countH, row);
   }

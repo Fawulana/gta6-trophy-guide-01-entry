@@ -15,6 +15,7 @@ export function loadProgress() {
       earned: Array.isArray(parsed.earned) ? parsed.earned.filter((n) => typeof n === 'string') : [],
       counts: parsed.counts && typeof parsed.counts === 'object' ? parsed.counts : {},
       notes: parsed.notes && typeof parsed.notes === 'object' ? parsed.notes : {},
+      updatedAt: typeof parsed.updatedAt === 'string' ? parsed.updatedAt : undefined,
     };
   } catch {
     return emptyProgress();
@@ -22,6 +23,7 @@ export function loadProgress() {
 }
 
 export function saveProgress(progress) {
+  progress.updatedAt = new Date().toISOString();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
 }
 
@@ -50,6 +52,30 @@ export function setNote(progress, id, text) {
   saveProgress(progress);
 }
 
+// One-line summary for the header and the roadmap: earned count, percentage,
+// and per-grade and per-stage breakdowns, so the app can show progress
+// without re-counting in every view.
+export function progressSummary(progress, trophies) {
+  const earned = earnedSet(progress);
+  const byGrade = {};
+  const byStage = {};
+  for (const t of trophies) {
+    byGrade[t.grade] = byGrade[t.grade] || { got: 0, total: 0 };
+    byGrade[t.grade].total += 1;
+    if (earned.has(t.name)) byGrade[t.grade].got += 1;
+    byStage[t.stage] = byStage[t.stage] || { got: 0, total: 0 };
+    byStage[t.stage].total += 1;
+    if (earned.has(t.name)) byStage[t.stage].got += 1;
+  }
+  return {
+    earned: earned.size,
+    total: trophies.length,
+    percent: trophies.length ? Math.round((earned.size / trophies.length) * 100) : 0,
+    byGrade,
+    byStage,
+  };
+}
+
 export function exportProgress(progress) {
   return JSON.stringify({ app: 'leonida-platinum', version: 1, exportedAt: new Date().toISOString(), ...progress }, null, 2);
 }
@@ -62,5 +88,6 @@ export function parseImported(text) {
   if (Array.isArray(source.earned)) next.earned = source.earned.filter((n) => typeof n === 'string');
   if (source.counts && typeof source.counts === 'object') next.counts = source.counts;
   if (source.notes && typeof source.notes === 'object') next.notes = source.notes;
+  if (typeof source.updatedAt === 'string') next.updatedAt = source.updatedAt;
   return next;
 }
