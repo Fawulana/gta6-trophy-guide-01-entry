@@ -1,6 +1,7 @@
-/* Leonida Platinum — paper theme, coral accent, serif display, system sans body.
-   v2 adds styles for the Next-up line, stage progress bars and gates, the
-   pre-finale checklist, the guide steps, and the difficulty/time facts. */
+/* Leonida Platinum v3 — paper theme, coral accent, serif display, system sans body.
+   v3 adds styles for the time-to-platinum estimator (header box and panel),
+   the availability window box and table, the platinum path list, prerequisite
+   lists, the next-five queue, and the window filter pills. */
 :root {
   --paper: #f6f3ee;
   --card: #ffffff;
@@ -16,6 +17,8 @@
   --good: #2e7d4f;
   --warn: #8a5a00;
   --warn-bg: #fdf3d7;
+  --teal: #1f6f6b;
+  --teal-bg: #e2f2f0;
 }
 * { box-sizing: border-box; }
 body {
@@ -26,7 +29,7 @@ body {
   font-size: 15px;
   line-height: 1.5;
 }
-h1, h2, h3, .big-count { font-family: "Iowan Old Style", Palatino, Georgia, "Times New Roman", serif; }
+h1, h2, h3, .big-count, .estimator-big { font-family: "Iowan Old Style", Palatino, Georgia, "Times New Roman", serif; }
 .masthead {
   display: flex;
   gap: 24px;
@@ -44,8 +47,8 @@ h1, h2, h3, .big-count { font-family: "Iowan Old Style", Palatino, Georgia, "Tim
   border: 1px solid var(--line);
   border-radius: 14px;
   padding: 14px 18px;
-  min-width: 300px;
-  max-width: 420px;
+  min-width: 320px;
+  max-width: 460px;
   box-shadow: 0 1px 4px rgba(29, 33, 41, .08);
 }
 .big-count { font-size: 40px; line-height: 1; margin: 0; }
@@ -55,15 +58,30 @@ h1, h2, h3, .big-count { font-family: "Iowan Old Style", Palatino, Georgia, "Tim
 .bar-fill { height: 100%; width: 0%; background: var(--accent); transition: width .2s; }
 .grade-counts { margin: 8px 0 0; font-size: 13px; }
 .platinum-note { margin: 4px 0 0; font-size: 13px; color: var(--muted); }
+.estimator-box {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: var(--teal-bg);
+  border: 1px solid #bcdcd8;
+  border-radius: 10px;
+}
+.estimator-big { font-size: 26px; line-height: 1.1; margin: 0; color: var(--teal); }
+.estimator-big .estimator-to { font-size: 15px; color: var(--muted); }
+.estimator-line { margin: 4px 0 6px; font-size: 13px; color: var(--ink); }
+.estimator-bar { height: 8px; }
+.estimator-bar .bar-fill { background: var(--teal); }
+.estimator-method { margin: 6px 0 0; font-size: 12px; color: var(--muted); }
+.estimator-method a { color: var(--teal); font-weight: 700; }
 .next-up { margin: 10px 0 0; padding-top: 10px; border-top: 1px solid var(--line); font-size: 13px; }
 .next-up a { color: var(--accent); font-weight: 700; }
-.tabs { display: flex; gap: 4px; padding: 0 28px; border-bottom: 1px solid var(--line); background: var(--card); position: sticky; top: 0; z-index: 5; }
+.tabs { display: flex; gap: 4px; padding: 0 28px; border-bottom: 1px solid var(--line); background: var(--card); position: sticky; top: 0; z-index: 5; flex-wrap: wrap; }
 .tabs a {
-  padding: 10px 14px;
+  padding: 10px 12px;
   text-decoration: none;
   color: var(--ink);
   font-weight: 600;
   border-bottom: 3px solid transparent;
+  white-space: nowrap;
 }
 .tabs a.active { color: var(--accent); border-bottom-color: var(--accent); }
 .controls {
@@ -143,6 +161,7 @@ button.quiet { background: transparent; color: var(--ink); border-color: var(--l
 .pill.missable { background: #fbe3e3; color: #8c1d1d; }
 .pill.story-locked { background: var(--warn-bg); color: var(--warn); }
 .pill.kind { background: var(--accent-soft); color: var(--accent); }
+.pill.window { background: var(--teal-bg); color: var(--teal); }
 .counter-line { font-size: 12px; color: var(--muted); margin-top: 4px; }
 .est-line { color: var(--muted); }
 .detail-col { position: sticky; top: 52px; }
@@ -166,6 +185,12 @@ button.quiet { background: transparent; color: var(--ink); border-color: var(--l
 .steps { margin: 4px 0; padding-left: 20px; }
 .steps li { margin-bottom: 5px; font-size: 14px; }
 .missable-warning { background: #fbe3e3; border: 1px solid #eec1c1; border-radius: 6px; padding: 8px 10px; font-size: 13px; margin: 10px 0; }
+.window-box { background: var(--teal-bg); border: 1px solid #bcdcd8; border-radius: 6px; padding: 8px 10px; font-size: 13px; margin: 6px 0; }
+.window-box p { margin: 3px 0; }
+.prereq-list li { font-size: 13px; }
+.next-queue { margin: 6px 0; padding-left: 20px; }
+.next-queue li { margin-bottom: 6px; font-size: 13px; }
+.next-queue a { color: var(--accent); font-weight: 700; }
 .note-box { width: 100%; font: inherit; font-size: 13px; padding: 8px; border: 1px solid var(--line); border-radius: 6px; min-height: 56px; resize: vertical; }
 .counter-row { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
 .counter-row input { width: 80px; font: inherit; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; }
@@ -189,6 +214,48 @@ button.quiet { background: transparent; color: var(--ink); border-color: var(--l
 .missable-group li { padding: 5px 0; border-top: 1px solid #eee9dd; font-size: 14px; }
 .missable-group li:first-child { border-top: 0; }
 .missable-group .done { color: var(--good); }
+.path-list { list-style: none; counter-reset: path; padding-left: 0; margin: 0; }
+.path-step {
+  counter-increment: path;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px 10px 52px;
+  margin-bottom: 8px;
+  position: relative;
+}
+.path-step::before {
+  content: counter(path);
+  position: absolute;
+  left: 12px;
+  top: 10px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.path-step.earned { background: #f4f8f2; }
+.path-step.earned::before { background: var(--good); }
+.path-head { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.path-head a { font-weight: 700; color: var(--ink); text-decoration: none; font-size: 15px; }
+.path-head a:hover { color: var(--accent); }
+.path-meta { font-size: 12px; color: var(--muted); }
+.path-detail { font-size: 13px; color: var(--muted); margin-top: 3px; }
+.window-table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; margin-bottom: 14px; font-size: 13px; }
+.window-table th, .window-table td { text-align: left; padding: 8px 10px; border-top: 1px solid #eee9dd; vertical-align: top; }
+.window-table thead th { background: #efe9dc; border-top: 0; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; }
+.window-table a { color: var(--accent); font-weight: 700; }
+.window-table .done { color: var(--good); }
+.estimator-panel { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; margin-bottom: 14px; }
+.estimator-panel h2 { margin: 0 0 6px; font-size: 22px; }
+.estimator-big { font-size: 22px; color: var(--teal); margin: 4px 0; }
+.estimator-split { font-size: 14px; color: var(--muted); }
 .about h2 { margin: 18px 0 6px; font-size: 20px; }
 .about p, .about li { font-size: 14px; }
 .about ul { padding-left: 20px; }
@@ -198,4 +265,5 @@ footer { border-top: 1px solid var(--line); padding: 16px 28px 28px; color: var(
   .layout { grid-template-columns: 1fr; }
   .detail-col { position: static; }
   .masthead h1 { font-size: 34px; }
+  .window-table { font-size: 12px; }
 }

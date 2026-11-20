@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Leonida Platinum — GTA VI Trophy Guide &amp; Tracker</title>
-<meta name="description" content="Offline guide and tracker for all 55 GTA VI PlayStation 5 trophies: checklist, roadmap to the platinum, pre-finale checklist, missables, and a cited guide with steps, difficulty and time for every trophy.">
+<meta name="description" content="Offline guide and tracker for all 55 GTA VI PlayStation 5 trophies: checklist with availability windows and prerequisites, a difficulty-ordered platinum path, a live time-to-platinum estimator, pre-finale checklist, missables, and a cited guide with steps, difficulty and time for every trophy.">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -12,7 +12,7 @@
   <div class="masthead-inner">
     <p class="kicker">Grand Theft Auto VI &middot; PlayStation 5</p>
     <h1>Leonida Platinum</h1>
-    <p class="subtitle">The offline trophy guide &amp; tracker &mdash; all 55 trophies: 1 platinum, 2 gold, 6 silver, 46 bronze. 28 are hidden on PlayStation until earned. Every guide carries concrete steps, a difficulty rating, a time estimate and when to do it.</p>
+    <p class="subtitle">The offline trophy guide &amp; tracker &mdash; all 55 trophies: 1 platinum, 2 gold, 6 silver, 46 bronze. 28 are hidden on PlayStation until earned. Every trophy carries its availability window, its prerequisites and its hour estimate — and the estimator in the corner counts down as you tick trophies off.</p>
     <p class="honesty">The game released 19 November 2026 and this guide has not been checked in the game. Every guide is built from the official description plus the PSN progress target where one exists, cites its sources, and says plainly where a place or step is not pinned down.</p>
   </div>
   <div class="progress-card" id="progressCard" aria-live="polite">
@@ -21,18 +21,26 @@
     <div class="bar"><div class="bar-fill" id="barFill"></div></div>
     <p class="grade-counts" id="gradeCounts"></p>
     <p class="platinum-note" id="platinumNote"></p>
+    <div class="estimator-box" id="estimatorBox">
+      <p class="estimator-big"><span id="hoursLeft">0 h</span> <span class="estimator-to">to platinum</span></p>
+      <p class="estimator-line" id="estimatorLine"></p>
+      <div class="bar estimator-bar"><div class="bar-fill" id="estimatorBarFill"></div></div>
+      <p class="estimator-method">Est. method: unfinished story chapters 6 h each, final mission 1 h; each other trophy its own hour estimate, counted trophies credited by their counter. <a href="#/estimator">How the estimate works</a></p>
+    </div>
     <p class="next-up" id="nextUp"></p>
   </div>
 </header>
 <nav class="tabs" aria-label="Views">
   <a href="#/" data-view="checklist">Checklist</a>
+  <a href="#/path" data-view="path">Platinum path</a>
   <a href="#/roadmap" data-view="roadmap">Roadmap to Platinum</a>
   <a href="#/prefinale" data-view="prefinale">Before the finale</a>
-  <a href="#/missables" data-view="missables">Missables</a>
+  <a href="#/missables" data-view="missables">Missables &amp; windows</a>
+  <a href="#/estimator" data-view="estimator">Time estimator</a>
   <a href="#/about" data-view="about">Sources &amp; method</a>
 </nav>
 <section class="controls" aria-label="Tracker controls">
-  <label class="search-label">Search <input id="search" type="search" placeholder="Name, mission, activity&hellip;" autocomplete="off"></label>
+  <label class="search-label">Search <input id="search" type="search" placeholder="Name, mission, window, prerequisite&hellip;" autocomplete="off"></label>
   <label>Kind
     <select id="kindFilter">
       <option value="all">All kinds</option>
@@ -54,6 +62,14 @@
       <option value="bronze">Bronze</option>
     </select>
   </label>
+  <label>Window
+    <select id="windowFilter">
+      <option value="all">All windows</option>
+      <option value="closing">Closing soon — story-locked or missable</option>
+      <option value="story">Story window — a chapter or mission</option>
+      <option value="anytime">Any time — including post-game</option>
+    </select>
+  </label>
   <label>Show
     <select id="earnedFilter">
       <option value="all">All trophies</option>
@@ -64,6 +80,8 @@
   <label>Order
     <select id="orderFilter">
       <option value="official">Official order</option>
+      <option value="path">Platinum path order</option>
+      <option value="window">Closing windows first</option>
       <option value="grade">Grade first</option>
       <option value="difficulty">Hardest first</option>
       <option value="closest">Closest to done</option>
@@ -85,7 +103,7 @@
   <aside class="detail-col" id="detailPane" aria-label="Trophy guide"></aside>
 </main>
 <footer>
-  <p>Names, descriptions and grades are the official list as PlayStation publishes it (Exophase / PSNProfiles, 18 Nov 2026). Guides are this entry&rsquo;s own words; a guide repeats no other guide&rsquo;s text. Difficulty and time are this entry&rsquo;s estimates, marked &ldquo;Est.&rdquo; wherever they appear. No Rockstar logo or official artwork is used. Works offline: every file it loads lives under app/.</p>
+  <p>Names, descriptions and grades are the official list as PlayStation publishes it (Exophase / PSNProfiles, 18 Nov 2026). Guides are this entry&rsquo;s own words; a guide repeats no other guide&rsquo;s text. Difficulty, time and hours are this entry&rsquo;s estimates, marked &ldquo;Est.&rdquo; wherever they appear. Availability windows and prerequisites are built from the official descriptions and the guides — a window that is not pinned down by a source says so. No Rockstar logo or official artwork is used. Works offline: every file it loads lives under app/.</p>
   <p>Progress is saved in this browser only (localStorage). Export it to keep a backup; import restores it.</p>
 </footer>
 <script type="module" src="js/main.js"></script>
